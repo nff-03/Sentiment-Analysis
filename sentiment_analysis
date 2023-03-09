@@ -1,0 +1,159 @@
+def compute_tweets(tfile, kfile):
+    pun = "~!@#$%^&*()[]{}<>_-'?+=.,;/|\\\""  # Assign punctuation to strip from the tweets later
+    res = []  # Assign an empty list to return if files don't exist
+
+    # Initialize the tweets count for each region to be zero
+
+    eastern_tweets = 0
+    central_tweets = 0
+    mountain_tweets = 0
+    pacific_tweets = 0
+
+    # Initialize the keywords tweets count for each region to be zero
+
+    eastern_keyword_tweets = 0
+    central_keyword_tweets = 0
+    mountain_keyword_tweets = 0
+    pacific_keyword_tweets = 0
+
+    # Initialize the average (happiness score) for each region to be zero
+
+    eastern_happiness_score = 0
+    central_happiness_score = 0
+    mountain_happiness_score = 0
+    pacific_happiness_score = 0
+
+    # Assign the points for the squares around the timezones
+
+    p1 = (49.189787, -67.444574)
+    p2 = (24.660845, -67.444574)
+    p3 = (49.189787, -87.518395)
+    p4 = (24.660845, -87.518395)
+    p5 = (49.189787, -101.998892)
+    p6 = (24.660845, -101.998892)
+    p7 = (49.189787, -115.236428)
+    p8 = (24.660845, -115.236428)
+    p9 = (49.189787, -125.242264)
+    p10 = (24.660845, -125.242264)
+
+    # Try to open the tweets file using the first parameter in the function
+
+    try:
+        tweetsfile = open(tfile, "r", encoding="utf-8")
+
+    # If the file is not found, print a message and return the empty list
+
+    except FileNotFoundError:
+        print("Error: file", tfile, " does not exist")
+        return res
+
+    # Try to open the keywords file using the first parameter in the function
+
+    try:
+        keywordsfile = open(kfile, "r", encoding="utf-8")
+
+    # If the file is not found, print a message and return the empty list
+
+    except FileNotFoundError:
+        print("Error: file", kfile, "does not exist")
+        return res
+
+    keywords = {}  # Assign keywords to be an empty dictionary
+
+    for line in keywordsfile:  # Create a for loop to loop in the lines of the keywords file
+
+        line = line.split(",")  # Split the lines in the file into lists, where there is a comma
+
+        # Assign the first element in the lists to be the key in the keywords dictionary
+        # Assign the second element in the lists to be the value in the keywords dictionary
+        # Int the values, to be able to use operations on them
+
+        keywords[line[0]] = int(line[1])
+
+    keywordsfile.close()  # Close the keywords file
+
+    for line in tweetsfile:  # Create a for loop to loop in the lines of the tweets file
+
+        line = line.split(" ")  # Split the lines in the file into lists, where there is a space
+
+        # Assign the latitude to be the position 0 in the list, and take the numbers from the first position until the
+        # last position, this way you don't take the square bracket with it, then float it
+        # Do the same for the longitude, except it is the position 1 in the list, and take the numbers from the zero position
+        # until the last position, this way you don't take the square bracket with it, then float it
+
+        latitude = float(line[0][1:-1])
+        longitude = float(line[1][0: -1])
+
+        # Take the elements from position 5, which is after the time and date of tweet, which can be ignored,
+        # until the last position
+
+        tweets = line[5:-1]
+
+        # For each word of the tweets, make it all lower case letters and strip it from punctuation
+
+        tweetstext = [word.lower().strip(pun) for word in tweets]
+
+        # Create an if and elif statements and specify each region in it, so you can be able to find the number of tweets
+        # in each region. An else statement is to indicate if the tweet not in any of those regions, then it is ignored
+
+        if p2[0] <= latitude <= p3[0] and p4[1] <= longitude <= p1[1]:
+            eastern_tweets += 1
+        elif p4[0] <= latitude <= p5[0] and p6[1] <= longitude <= p3[1]:
+            central_tweets += 1
+        elif p6[0] <= latitude <= p7[0] and p8[1] <= longitude <= p5[1]:
+            mountain_tweets += 1
+        elif p8[0] <= latitude <= p9[0] and p10[1] <= longitude <= p7[1]:
+            pacific_tweets += 1
+        else:
+            continue
+
+        # For every key in the dictionary keywords, if the key(keyword) is in the tweet text, and is in the region listed
+        # then add one to the count of keyword tweets count and add the value of the key(happiness score) to the happiness
+        # score count
+
+        for i in keywords:
+            if i in tweetstext and (p2[0] <= latitude <= p3[0] and p4[1] <= longitude <= p1[1]):
+                eastern_keyword_tweets += 1
+                eastern_happiness_score += keywords[i]
+            elif i in tweetstext and (p4[0] <= latitude <= p5[0] and p6[1] <= longitude <= p3[1]):
+                central_keyword_tweets += 1
+                central_happiness_score += keywords[i]
+            elif i in tweetstext and (p6[0] <= latitude <= p7[0] and p8[1] <= longitude <= p5[1]):
+                mountain_keyword_tweets += 1
+                mountain_happiness_score += keywords[i] / mountain_keyword_tweets
+            elif i in tweetstext and (p8[0] <= latitude <= p9[0] and p10[1] <= longitude <= p7[1]):
+                pacific_keyword_tweets += 1
+                pacific_happiness_score += keywords[i]
+            else:
+                continue
+
+    # Try to divide the happiness score by the number of keyword tweets to find the average for each region, but if the
+    # keywords tweets is zero, we will get an error, so make an except statement for that case that sits the average to 0
+
+    try:
+        eastern_average = eastern_happiness_score / eastern_keyword_tweets
+    except ZeroDivisionError:
+        eastern_average = 0
+    try:
+        central_average = central_happiness_score / central_keyword_tweets
+    except ZeroDivisionError:
+        central_average = 0
+    try:
+        mountain_average = mountain_happiness_score / mountain_keyword_tweets
+    except ZeroDivisionError:
+        mountain_average = 0
+    try:
+        pacific_average = pacific_happiness_score / pacific_keyword_tweets
+    except ZeroDivisionError:
+        pacific_average = 0
+
+    # Create a tuple for each region that indicates the average, keyword tweets, and tweets
+
+    eastern = (eastern_average, eastern_keyword_tweets, eastern_tweets)
+    central = (central_average, central_keyword_tweets, central_tweets)
+    mountain = (mountain_average, mountain_keyword_tweets, mountain_tweets)
+    pacific = (pacific_average, pacific_keyword_tweets, pacific_tweets)
+
+    tweetsfile.close()  # Close the tweets file
+
+    return [eastern, central, mountain, pacific]  # return a list with each tuple for the regions
