@@ -1,0 +1,33 @@
+''' This program is designed to ask the user to input a tweets file's name,and keywords file's name,  and  a if the files
+    exist, the function imported from sentiment_analysis is supposed to return a list with the number of happiness score,
+    number of keywords tweets and number of tweets for each region, but if the files don't exist, the function returns an
+    error and an empty list '''
+
+from sentiment_analysis import compute_tweets  # Import the function from the file
+
+tweets_file = input("Enter the tweets file name: ")  # Ask user to input the tweets file's name
+keywords_file = input("Enter the keywords file name: ")  # Ask user to input the keywords file's name
+
+# Make an if statement for both files, in case the user inputs the files' name without the ".txt" extension, then it is added
+
+if not tweets_file.endswith(".txt"):
+    tweets_file = "{}.txt".format(tweets_file)
+
+if not keywords_file.endswith(".txt"):
+    keywords_file = "{}.txt".format(keywords_file)
+
+# Assign a variable to call the function with, and then call the function, and assign the parameters to be the variables
+# with the files name
+
+res = compute_tweets(tweets_file, keywords_file)
+
+# Try to print the final statements, using the value of each element in the list and the tuples, but if the file does not
+# exist, and the function returns an empty list, exit
+
+try:
+    print("Eastern - ", "happiness score average: ", res[0][0], "\t keyword tweets: ", res[0][1], "\t tweets: ", res[0][2])
+    print("Central - ", "happiness score average: ", res[1][0], "\t keyword tweets: ", res[1][1], "\t tweets: ", res[1][2])
+    print("Mountain - ", "happiness score average: ", res[2][0], "\t keyword tweets: ", res[2][1], "\t tweets: ", res[2][2])
+    print("Pacific - ", "happiness score average: ", res[3][0], "\t keyword tweets: ", res[3][1], "\t tweets: ", res[3][2])
+except IndexError:
+    exit()
